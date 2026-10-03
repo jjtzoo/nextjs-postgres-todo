@@ -61,7 +61,7 @@ li { margin-bottom: 3px; }
 
 <table class="toc">
 <tr><td>Part 1</td><td>Understand before you type: the big picture, key words, folders, who creates which file</td></tr>
-<tr><td>Part 2</td><td>Set up PostgreSQL: install, psql, create the database and table</td></tr>
+<tr><td>Part 2</td><td>Set up PostgreSQL: install, then create the database and table with psql or pgAdmin</td></tr>
 <tr><td>Part 3</td><td>Create the Next.js project with one command, add libraries</td></tr>
 <tr><td>Part 4</td><td>Write the code, back to front: database &rarr; model &rarr; API &rarr; store &rarr; page</td></tr>
 <tr><td>Part 5</td><td>Compare with Express + Mongoose</td></tr>
@@ -159,7 +159,7 @@ li { margin-bottom: 3px; }
 <tr><td><code>guide/</code></td><td>-</td><td>-</td><td><b>Not part of the app.</b> <code>build-guide.mjs</code> and <code>explanations.mjs</code> only generate this PDF. You can delete the folder and the app still works.</td></tr>
 </table>
 
-<h2 class="part">Part 2: Set up PostgreSQL<span>Install the database, meet psql, create the database and the table.</span></h2>
+<h2 class="part">Part 2: Set up PostgreSQL<span>Install the database, then create the database and table with psql (typing) or pgAdmin (clicking).</span></h2>
 
 <h3 class="step"><span class="num">1</span>Install Node.js</h3>
 <p>Download the LTS version from <b>nodejs.org</b> and install it. Check it in PowerShell:</p>
@@ -176,7 +176,7 @@ npm -v</pre></div>
 <p>In the wizard, click Next through everything, except:</p>
 <table>
 <tr><th>Screen</th><th>What to do</th></tr>
-<tr><td>Password</td><td>Choose a password for the main database user, called <code>postgres</code>. Letters and numbers are easiest. <b>Write it down</b>; you need it in step 10.</td></tr>
+<tr><td>Password</td><td>Choose a password for the main database user, called <code>postgres</code>. Letters and numbers are easiest. <b>Write it down</b>; you need it in step 11.</td></tr>
 <tr><td>Port</td><td>Keep <b>5432</b>.</td></tr>
 <tr><td>Last screen</td><td>Untick "Stack Builder"; you don't need it.</td></tr>
 </table>
@@ -214,7 +214,7 @@ npm -v</pre></div>
 <p>It answers <code>CREATE DATABASE</code>. Do this once; running it again says "already exists", which is harmless.</p>
 
 <h3 class="step"><span class="num">5</span>Create the table</h3>
-<p>Unlike MongoDB, PostgreSQL needs to know the <b>shape</b> of your data before you store any: a table with named, typed columns. Save this as <code>schema.sql</code> in your project folder (you'll create the folder in step 6, so you can also come back to this step):</p>
+<p>Unlike MongoDB, PostgreSQL needs to know the <b>shape</b> of your data before you store any: a table with named, typed columns. Save this as <code>schema.sql</code> in your project folder (you'll create the folder in step 7, so you can also come back to this step):</p>
 <div class="ex"><div class="label">schema.sql</div><table><tr><th>Code</th><th>What it means</th></tr><tr><td class="c"><pre>-- Run this once to create the table.</pre></td><td class="e">A comment. In SQL, comments start with <code>--</code>. The database ignores it.</td></tr><tr><td class="c"><pre>CREATE TABLE IF NOT EXISTS todos (</pre></td><td class="e">Make a new table called <code>todos</code>. <code>IF NOT EXISTS</code> means: if it's already there, do nothing instead of crashing.</td></tr><tr><td class="c"><pre>  id    SERIAL PRIMARY KEY,</pre></td><td class="e">Column 1: <code>id</code>. <code>SERIAL</code> = Postgres fills in 1, 2, 3... for you. <code>PRIMARY KEY</code> = no two rows can share an id. (Like Mongo's <code>_id</code>, but a simple number.)</td></tr><tr><td class="c"><pre>  text  TEXT NOT NULL,</pre></td><td class="e">Column 2: <code>text</code>, the task name. <code>TEXT</code> = any length string. <code>NOT NULL</code> = it must always have a value.</td></tr><tr><td class="c"><pre>  done  BOOLEAN NOT NULL DEFAULT FALSE</pre></td><td class="e">Column 3: <code>done</code>, true or false. If you don't give one, it starts as <code>FALSE</code>.</td></tr><tr><td class="c"><pre>);</pre></td><td class="e">Close the column list. The <code>;</code> ends the SQL command.</td></tr></table></div>
 <p>Run the file against the <code>todo_app</code> database, then check the result with <code>\d</code> (describe):</p>
 <div class="code"><div class="label">PowerShell</div><pre>psql -U postgres -h localhost -d todo_app -f schema.sql
@@ -237,9 +237,60 @@ Indexes:
 <tr><td><code>\q</code></td><td>Quit</td><td><code>exit</code></td></tr>
 </table>
 
+<h3 class="step"><span class="num">6</span>Do it visually in pgAdmin</h3>
+<p>Everything in steps 4 and 5 can also be done by clicking in <b>pgAdmin 4</b>, the desktop app installed with PostgreSQL (Start &rarr; pgAdmin 4). Doing it both ways is great for your fundamentals: you'll <i>see</i> what a server, a database, a table and a column actually are, and pgAdmin even shows you the SQL behind every click.</p>
+
+<h4>a. Connect to your server</h4>
+<ol>
+<li>If the left panel is hidden, click the top icon (the tree) on the far-left bar to open the <b>Object Explorer</b>.</li>
+<li>If <b>Servers &rarr; PostgreSQL 17</b> is listed, expand it and enter your <code>postgres</code> password. Tick <b>Save password</b> so it won't ask again.</li>
+<li>If the list is empty, click <b>Add New Server</b> on the Dashboard and fill in:
+<table>
+<tr><th>Tab</th><th>Field</th><th>Value</th></tr>
+<tr><td>General</td><td>Name</td><td><code>Local</code> (any label you like)</td></tr>
+<tr><td rowspan="4">Connection</td><td>Host name/address</td><td><code>localhost</code></td></tr>
+<tr><td>Port</td><td><code>5432</code></td></tr>
+<tr><td>Username</td><td><code>postgres</code></td></tr>
+<tr><td>Password</td><td>your password, and tick <b>Save password</b></td></tr>
+</table>
+Click <b>Save</b>. These are exactly the parts of your <code>DATABASE_URL</code>.</li>
+</ol>
+
+<h4>b. Create the database</h4>
+<p>Right-click <b>Databases &rarr; Create &rarr; Database...</b>, type <code>todo_app</code> in <b>Database</b>, and click <b>Save</b>. (If you already did step 4 it's there already; create <code>practice_db</code> instead to try it.)</p>
+<div class="box plain"><div class="bt">In plain English</div><p>Before clicking Save, open the dialog's <b>SQL</b> tab. pgAdmin shows the command it's about to run: <code>CREATE DATABASE ...</code>. Every click in pgAdmin is just SQL underneath, the same SQL you'd type in psql.</p></div>
+
+<h4>c. Create the table, way 1: Query Tool (SQL)</h4>
+<ol>
+<li>Right-click your database &rarr; <b>Query Tool</b>. An editor opens.</li>
+<li>Paste the contents of <code>schema.sql</code>.</li>
+<li>Press <b>F5</b> (or the &#9654; Execute button). The Messages panel says the query returned successfully.</li>
+<li>In the Object Explorer, right-click <b>Schemas &rarr; public &rarr; Tables</b> &rarr; <b>Refresh</b>. <code>todos</code> appears.</li>
+</ol>
+
+<h4>d. Create the table, way 2: only clicks</h4>
+<ol>
+<li>Expand your database &rarr; <b>Schemas &rarr; public</b>, then right-click <b>Tables &rarr; Create &rarr; Table...</b></li>
+<li><b>General</b> tab: Name <code>todos</code>.</li>
+<li><b>Columns</b> tab: click <b>+</b> once per column:
+<table>
+<tr><th>Name</th><th>Data type</th><th>Not NULL?</th><th>Primary key?</th><th>Default</th></tr>
+<tr><td><code>id</code></td><td><code>serial</code></td><td>on</td><td>on</td><td></td></tr>
+<tr><td><code>text</code></td><td><code>text</code></td><td>on</td><td>off</td><td></td></tr>
+<tr><td><code>done</code></td><td><code>boolean</code></td><td>on</td><td>off</td><td><code>false</code></td></tr>
+</table></li>
+<li>Peek at the <b>SQL</b> tab: it's almost exactly <code>schema.sql</code>. Click <b>Save</b>.</li>
+</ol>
+
+<h4>e. Look at your data</h4>
+<p>Right-click <b>todos &rarr; View/Edit Data &rarr; All Rows</b>. Your tasks appear as a grid, like a spreadsheet. Add a task in the app, run the view again (F5), and the new row shows up. That's your whole app proven end to end: page &rarr; API &rarr; database.</p>
+
+<div class="box mongo"><div class="bt">Interview angle: why know both?</div><p><b>pgAdmin</b> is for <i>exploring and debugging</i>: what's in this table, did my app really save that row. <b>SQL files and psql</b> are for <i>repeatable setup</i>: <code>schema.sql</code> lives in Git, so anyone (a teammate, a server, you on a new laptop) can recreate the exact same table with one command. Clicks can't be saved or reviewed.</p>
+<p>A strong answer in an interview: <i>"I define the schema in a SQL file that's committed with the code, and I use pgAdmin or psql to inspect the data while developing."</i> And when they ask you to write a query, you'll have typed every one of these yourself.</p></div>
+
 <h2 class="part">Part 3: Create the Next.js project<span>One command makes the skeleton; two more add our libraries.</span></h2>
 
-<h3 class="step"><span class="num">6</span>Generate the project (boilerplate)</h3>
+<h3 class="step"><span class="num">7</span>Generate the project (boilerplate)</h3>
 <p>Go to the folder where you keep projects, then run:</p>
 <div class="code"><div class="label">PowerShell</div><pre>npx create-next-app@latest todo-app --ts --app --empty --no-tailwind --no-eslint --no-src-dir --no-react-compiler --import-alias "@/*" --use-npm
 cd todo-app</pre></div>
@@ -273,7 +324,7 @@ cd todo-app</pre></div>
 └─ tsconfig.json</pre></div>
 <p>It also runs <code>npm install</code> for you and, if Git is installed, makes a first commit called "Initial commit from Create Next App". From then on, <code>git status</code> shows exactly which files <b>you</b> changed or added.</p>
 
-<h3 class="step"><span class="num">7</span>Add our three libraries</h3>
+<h3 class="step"><span class="num">8</span>Add our three libraries</h3>
 <div class="code"><div class="label">PowerShell</div><pre>npm install pg zustand
 npm install -D @types/pg</pre></div>
 <table>
@@ -286,11 +337,11 @@ npm install -D @types/pg</pre></div>
 <p>Some libraries ship their own types and need no <code>@types</code> package. <code>zustand</code> is one; <code>pg</code> isn't.</p></div>
 <p>These commands change <code>package.json</code> (new lines under <code>dependencies</code> / <code>devDependencies</code>), <code>package-lock.json</code> and <code>node_modules/</code>.</p>
 
-<h3 class="step"><span class="num">8</span>Run it once</h3>
+<h3 class="step"><span class="num">9</span>Run it once</h3>
 <div class="code"><div class="label">PowerShell</div><pre>npm run dev</pre></div>
 <p>Open <b>http://localhost:3000</b> and you'll see "Hello world!". Next.js just filled the <code>.next/</code> folder with the compiled app. Leave it running: it reloads automatically as you save files. Press <b>Ctrl+C</b> to stop it.</p>
 
-<h3 class="step"><span class="num">9</span>Understand the generated config (no changes needed)</h3>
+<h3 class="step"><span class="num">10</span>Understand the generated config (no changes needed)</h3>
 <p>You won't edit these, but you should know what they say.</p>
 <div class="ex"><div class="label">tsconfig.json</div><table><tr><th>Code</th><th>What it means</th></tr><tr><td class="c"><pre>{</pre></td><td class="e">This file is one JSON object of TypeScript settings. <b>create-next-app wrote it for you; you never need to change it.</b></td></tr><tr><td class="c"><pre>  "compilerOptions": {</pre></td><td class="e">Everything inside this block tells the TypeScript checker how to behave.</td></tr><tr><td class="c"><pre>    "target": "ES2017",</pre></td><td class="e">Which JavaScript version to aim for. Next.js handles old browsers itself, so this rarely matters.</td></tr><tr><td class="c"><pre>    "lib": ["dom", "dom.iterable", "esnext"],</pre></td><td class="e">Which built-in type definitions to load: browser things (<code>document</code>, <code>fetch</code>) and modern JavaScript.</td></tr><tr><td class="c"><pre>    "allowJs": true,</pre></td><td class="e">Plain <code>.js</code> files are allowed in the project too.</td></tr><tr><td class="c"><pre>    "skipLibCheck": true,</pre></td><td class="e">Don't type-check the insides of downloaded libraries. Faster, and avoids errors that aren't yours.</td></tr><tr><td class="c"><pre>    "strict": true,</pre></td><td class="e">Turn on all the strict safety checks. This is the whole point of TypeScript: catching mistakes like using something that might be <code>undefined</code>.</td></tr><tr><td class="c"><pre>    "noEmit": true,</pre></td><td class="e">TypeScript only <b>checks</b>; it doesn't produce any files. Next.js does the real compiling.</td></tr><tr><td class="c"><pre>    "esModuleInterop": true,</pre></td><td class="e">Lets <code>import</code> work smoothly with older libraries (like <code>pg</code>).</td></tr><tr><td class="c"><pre>    "module": "esnext",</pre></td><td class="e">Use modern <code>import</code> / <code>export</code> syntax.</td></tr><tr><td class="c"><pre>    "moduleResolution": "bundler",</pre></td><td class="e">Find imported files the way modern bundlers (like Next.js) do.</td></tr><tr><td class="c"><pre>    "resolveJsonModule": true,</pre></td><td class="e">You may <code>import</code> a <code>.json</code> file.</td></tr><tr><td class="c"><pre>    "isolatedModules": true,</pre></td><td class="e">Every file must make sense on its own. Next.js's fast compiler needs this.</td></tr><tr><td class="c"><pre>    "jsx": "react-jsx",</pre></td><td class="e">How to treat the HTML-looking <code>&lt;div&gt;</code> code in <code>.tsx</code> files. You don't need to import React in every file.</td></tr><tr><td class="c"><pre>    "incremental": true,</pre></td><td class="e">Remember the last check so the next one is faster. That's what the <code>tsconfig.tsbuildinfo</code> cache file is.</td></tr><tr><td class="c"><pre>    "plugins": [
       {
@@ -314,12 +365,12 @@ npm install -D @types/pg</pre></div>
 
 <h2 class="part">Part 4: Write the code<span>Back to front: secret → database connection → model → API → store → page.</span></h2>
 
-<h3 class="step"><span class="num">10</span>Store the database address in .env.local</h3>
+<h3 class="step"><span class="num">11</span>Store the database address in .env.local</h3>
 <p>Create a file named exactly <code>.env.local</code> in the project root. Use the password from step 2:</p>
 <div class="ex"><div class="label">.env.local</div><table><tr><th>Code</th><th>What it means</th></tr><tr><td class="c"><pre>DATABASE_URL=postgres://postgres:YOUR_PASSWORD@localhost:5432/todo_app</pre></td><td class="e">One setting, written as an address: <code>postgres://USER:PASSWORD@HOST:PORT/DATABASE</code>. Read it as: log in as user <code>postgres</code> with your password, on this computer (<code>localhost</code>), port <code>5432</code>, database <code>todo_app</code>. Code reads it with <code>process.env.DATABASE_URL</code>.</td></tr></table></div>
 <div class="box plain"><div class="bt">In plain English</div><p>Next.js loads <code>.env.local</code> automatically when it starts, and only server code can read it, so the password never reaches the browser. <code>.gitignore</code> already lists <code>.env*</code>, so it won't be uploaded to GitHub. <b>If you change this file, restart <code>npm run dev</code>.</b></p></div>
 
-<h3 class="step"><span class="num">11</span>Connect to the database: lib/db.ts</h3>
+<h3 class="step"><span class="num">12</span>Connect to the database: lib/db.ts</h3>
 <p>Create a folder <code>lib</code> and this file:</p>
 <div class="ex"><div class="label">lib/db.ts</div><table><tr><th>Code</th><th>What it means</th></tr><tr><td class="c"><pre>import { Pool } from "pg";</pre></td><td class="e">Bring in <code>Pool</code> from the <code>pg</code> library (the Node.js driver for PostgreSQL).</td></tr><tr><td class="c"><pre>// A Pool keeps a few database connections open and lends one to each query.
 // DATABASE_URL comes from .env.local (Next.js loads it automatically, server-side only).</pre></td><td class="e">Comments. Read the pool deep-dive below for the full story.</td></tr><tr><td class="c"><pre>function createPool() {
@@ -340,7 +391,7 @@ npm install -D @types/pg</pre></div>
 <p><b>Why the <code>globalThis</code> trick?</b> In development, Next.js re-runs a file each time you save it. Without the trick, every save would create a <i>new</i> pool while the old ones keep their connections open. After a few dozen saves Postgres says <code>sorry, too many clients already</code>. Parking the pool on <code>globalThis</code>, which survives reloads, means there is always just one. In production files aren't reloaded, so the trick isn't needed there.</p>
 <div class="box mongo"><div class="bt">If you know Mongoose / Express</div><p>This file is your <code>mongoose.connect(process.env.MONGODB_URI)</code>. Mongoose also keeps a pool behind the scenes; <code>pg</code> just makes it visible.</p></div>
 
-<h3 class="step"><span class="num">12</span>Write the model: models/todo.ts</h3>
+<h3 class="step"><span class="num">13</span>Write the model: models/todo.ts</h3>
 <p>Create a folder <code>models</code> and this file. It's the <b>only</b> file that contains SQL. Each function does one job:</p>
 <div class="ex"><div class="label">models/todo.ts</div><table><tr><th>Code</th><th>What it means</th></tr><tr><td class="c"><pre>import { pool } from "@/lib/db";</pre></td><td class="e">Bring in the shared pool from <code>lib/db.ts</code>. <code>@/</code> means the project root.</td></tr><tr><td class="c"><pre>// The "model": everything that talks to the todos table lives here.
 // (Like a Mongoose model, but the table's shape is defined in schema.sql.)</pre></td><td class="e">Comments: this file is the only place that writes SQL. Every other file just calls these functions.</td></tr><tr><td class="c"><pre>// Shape of one row in the todos table
@@ -388,7 +439,7 @@ UPDATE todos SET done = $1 WHERE id = $2 RETURNING *
 DELETE FROM todos WHERE id = $1</pre></div></div></div>
 <p>The big difference: Mongoose's schema lives in your <b>code</b>. A Postgres schema lives <b>inside the database</b> (you made it in step 5), and the database itself rejects bad data. Our <code>Todo</code> type just mirrors it for TypeScript.</p></div>
 
-<h3 class="step"><span class="num">13</span>Write the API routes (your controllers)</h3>
+<h3 class="step"><span class="num">14</span>Write the API routes (your controllers)</h3>
 <div class="box plain"><div class="bt">In plain English</div><p>An <b>API route</b> is a URL that returns data instead of a page. In Next.js you create one by making a file called <code>route.ts</code>; its <b>folder path</b> becomes the URL, and each exported function named after an HTTP method handles that method. No router setup and no <code>app.listen()</code>: <code>npm run dev</code> already serves it.</p></div>
 <p>Our four endpoints:</p>
 <table>
@@ -423,7 +474,7 @@ Invoke-RestMethod -Method Patch -Uri http://localhost:3000/api/todos/1 -ContentT
 Invoke-RestMethod -Method Delete -Uri http://localhost:3000/api/todos/1</pre></div>
 <div class="box tip"><div class="bt">Tip</div><p>Use <code>Invoke-RestMethod</code> in PowerShell instead of <code>curl</code>: in Windows PowerShell, <code>curl</code> is a different command and the JSON quotes get mangled.</p></div>
 
-<h3 class="step"><span class="num">14</span>Write the Zustand store: store/todoStore.ts</h3>
+<h3 class="step"><span class="num">15</span>Write the Zustand store: store/todoStore.ts</h3>
 <div class="box plain"><div class="bt">In plain English</div><p>A <b>store</b> is a shared whiteboard for the browser side of the app. It holds the todo list and the actions that change it. Any component can read it with <code>useTodoStore()</code>, and when the list changes, every component using it redraws.</p>
 <p>With one page you <i>could</i> keep everything in <code>useState</code>. The store pays off when a second component (say, a counter in a header) needs the same list: no passing props down through layers. It also moves the <code>fetch</code> calls out of the page, so the page only handles display.</p></div>
 <div class="ex"><div class="label">store/todoStore.ts</div><table><tr><th>Code</th><th>What it means</th></tr><tr><td class="c"><pre>import { create } from "zustand";</pre></td><td class="e"><code>create</code> is Zustand's one main function. It builds a store.</td></tr><tr><td class="c"><pre>import type { Todo } from "@/models/todo";</pre></td><td class="e">Reuse the <code>Todo</code> type from the model. <code>import type</code> brings in only the type, never the database code, so it's safe in the browser.</td></tr><tr><td class="c"><pre>// What the store holds: data (todos) + actions (functions that change it)
@@ -451,13 +502,13 @@ type TodoStore = {
   },
 }));</pre></td><td class="e">Reload the list. The <code>}));</code> closes the store object, the arrow function and <code>create(</code>.</td></tr></table></div>
 
-<h3 class="step"><span class="num">15</span>Replace app/layout.tsx</h3>
+<h3 class="step"><span class="num">16</span>Replace app/layout.tsx</h3>
 <p>Replace the generated file with this simpler version. (The generated one uses <code>LayoutProps&lt;"/"&gt;</code>, a newer Next.js helper type; both work.)</p>
 <div class="ex"><div class="label">app/layout.tsx</div><table><tr><th>Code</th><th>What it means</th></tr><tr><td class="c"><pre>// layout.tsx wraps every page. It must render &lt;html&gt; and &lt;body&gt;.</pre></td><td class="e">Comment: the layout is the frame around every page.</td></tr><tr><td class="c"><pre>export const metadata = { title: "To-Do" };</pre></td><td class="e">Page info for the browser. <code>title</code> is the text on the browser tab.</td></tr><tr><td class="c"><pre>export default function RootLayout({ children }: { children: React.ReactNode }) {</pre></td><td class="e">The layout component. Next.js gives it <code>children</code> (the page being shown). The type says <code>children</code> is anything React can display.</td></tr><tr><td class="c"><pre>  return (</pre></td><td class="e">What this component draws.</td></tr><tr><td class="c"><pre>    &lt;html lang="en"&gt;</pre></td><td class="e">The outer HTML tag. Next.js requires the root layout to include <code>&lt;html&gt;</code> and <code>&lt;body&gt;</code>. <code>lang="en"</code> = English page.</td></tr><tr><td class="c"><pre>      &lt;body style={{ fontFamily: "sans-serif", maxWidth: 400, margin: "40px auto" }}&gt;</pre></td><td class="e">The page body. The <code>style</code> uses a simple font, max width 400px, and <code>margin: "40px auto"</code> centers it.</td></tr><tr><td class="c"><pre>        {children}</pre></td><td class="e">The current page (<code>page.tsx</code>) is placed here.</td></tr><tr><td class="c"><pre>      &lt;/body&gt;
     &lt;/html&gt;</pre></td><td class="e">Closing tags.</td></tr><tr><td class="c"><pre>  );
 }</pre></td><td class="e">End of what's drawn, end of the function.</td></tr></table></div>
 
-<h3 class="step"><span class="num">16</span>Replace app/page.tsx</h3>
+<h3 class="step"><span class="num">17</span>Replace app/page.tsx</h3>
 <p>The page only <b>displays</b> things and <b>calls store actions</b>. It never talks to the API or the database directly.</p>
 <div class="ex"><div class="label">app/page.tsx</div><table><tr><th>Code</th><th>What it means</th></tr><tr><td class="c"><pre>"use client"; // runs in the browser: needed for hooks and click handlers</pre></td><td class="e">This component runs in the <b>browser</b>. Needed because it uses hooks and click handlers. (Without it, Next.js runs components on the server.)</td></tr><tr><td class="c"><pre>import { useEffect, useState } from "react";</pre></td><td class="e">Two built-in React hooks: <code>useState</code> (remember a value) and <code>useEffect</code> (run code after the page shows).</td></tr><tr><td class="c"><pre>import { useTodoStore } from "@/store/todoStore";</pre></td><td class="e">Our Zustand store hook.</td></tr><tr><td class="c"><pre>export default function Home() {</pre></td><td class="e">The page. Next.js shows it at <code>/</code> because it's <code>app/page.tsx</code>.</td></tr><tr><td class="c"><pre>  // Shared state + actions come from the Zustand store
   const { todos, loadTodos, addTodo, toggleTodo, removeTodo } = useTodoStore();</pre></td><td class="e">Grab the todo list and the four actions from the store. When the store's <code>todos</code> change, this page re-draws.</td></tr><tr><td class="c"><pre>  // Local state: only this page cares what's typed in the box
@@ -477,7 +528,7 @@ type TodoStore = {
   );
 }</pre></td><td class="e">Close the list and container; end of the component.</td></tr></table></div>
 
-<h3 class="step"><span class="num">17</span>Run and test</h3>
+<h3 class="step"><span class="num">18</span>Run and test</h3>
 <div class="code"><div class="label">PowerShell</div><pre>npm run dev</pre></div>
 <p>Open <b>http://localhost:3000</b>, then check:</p>
 <ol>

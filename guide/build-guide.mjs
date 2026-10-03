@@ -113,7 +113,7 @@ li { margin-bottom: 3px; }
 
 <table class="toc">
 <tr><td>Part 1</td><td>Understand before you type: the big picture, key words, folders, who creates which file</td></tr>
-<tr><td>Part 2</td><td>Set up PostgreSQL: install, psql, create the database and table</td></tr>
+<tr><td>Part 2</td><td>Set up PostgreSQL: install, then create the database and table with psql or pgAdmin</td></tr>
 <tr><td>Part 3</td><td>Create the Next.js project with one command, add libraries</td></tr>
 <tr><td>Part 4</td><td>Write the code, back to front: database &rarr; model &rarr; API &rarr; store &rarr; page</td></tr>
 <tr><td>Part 5</td><td>Compare with Express + Mongoose</td></tr>
@@ -211,7 +211,7 @@ ${plain(`<p>Next.js only cares about <code>app/</code> (and <code>public/</code>
 <tr><td><code>guide/</code></td><td>-</td><td>-</td><td><b>Not part of the app.</b> <code>build-guide.mjs</code> and <code>explanations.mjs</code> only generate this PDF. You can delete the folder and the app still works.</td></tr>
 </table>
 
-${part("Part 2: Set up PostgreSQL", "Install the database, meet psql, create the database and the table.")}
+${part("Part 2: Set up PostgreSQL", "Install the database, then create the database and table with psql (typing) or pgAdmin (clicking).")}
 
 ${step("Install Node.js")}
 <p>Download the LTS version from <b>nodejs.org</b> and install it. Check it in PowerShell:</p>
@@ -227,7 +227,7 @@ ${ps("winget install PostgreSQL.PostgreSQL.17 --interactive")}
 <p>In the wizard, click Next through everything, except:</p>
 <table>
 <tr><th>Screen</th><th>What to do</th></tr>
-<tr><td>Password</td><td>Choose a password for the main database user, called <code>postgres</code>. Letters and numbers are easiest. <b>Write it down</b>; you need it in step 10.</td></tr>
+<tr><td>Password</td><td>Choose a password for the main database user, called <code>postgres</code>. Letters and numbers are easiest. <b>Write it down</b>; you need it in step 11.</td></tr>
 <tr><td>Port</td><td>Keep <b>5432</b>.</td></tr>
 <tr><td>Last screen</td><td>Untick "Stack Builder"; you don't need it.</td></tr>
 </table>
@@ -265,7 +265,7 @@ ${ps(`psql -U postgres -h localhost -c "CREATE DATABASE todo_app;"`)}
 <p>It answers <code>CREATE DATABASE</code>. Do this once; running it again says "already exists", which is harmless.</p>
 
 ${step("Create the table")}
-<p>Unlike MongoDB, PostgreSQL needs to know the <b>shape</b> of your data before you store any: a table with named, typed columns. Save this as <code>schema.sql</code> in your project folder (you'll create the folder in step 6, so you can also come back to this step):</p>
+<p>Unlike MongoDB, PostgreSQL needs to know the <b>shape</b> of your data before you store any: a table with named, typed columns. Save this as <code>schema.sql</code> in your project folder (you'll create the folder in step 7, so you can also come back to this step):</p>
 ${explain("schema.sql")}
 <p>Run the file against the <code>todo_app</code> database, then check the result with <code>\\d</code> (describe):</p>
 ${ps(`psql -U postgres -h localhost -d todo_app -f schema.sql
@@ -287,6 +287,57 @@ Indexes:
 <tr><td><code>SELECT * FROM todos;</code></td><td>Show all rows (don't forget the <code>;</code>)</td><td><code>db.todos.find()</code></td></tr>
 <tr><td><code>\\q</code></td><td>Quit</td><td><code>exit</code></td></tr>
 </table>
+
+${step("Do it visually in pgAdmin")}
+<p>Everything in steps 4 and 5 can also be done by clicking in <b>pgAdmin 4</b>, the desktop app installed with PostgreSQL (Start &rarr; pgAdmin 4). Doing it both ways is great for your fundamentals: you'll <i>see</i> what a server, a database, a table and a column actually are, and pgAdmin even shows you the SQL behind every click.</p>
+
+<h4>a. Connect to your server</h4>
+<ol>
+<li>If the left panel is hidden, click the top icon (the tree) on the far-left bar to open the <b>Object Explorer</b>.</li>
+<li>If <b>Servers &rarr; PostgreSQL 17</b> is listed, expand it and enter your <code>postgres</code> password. Tick <b>Save password</b> so it won't ask again.</li>
+<li>If the list is empty, click <b>Add New Server</b> on the Dashboard and fill in:
+<table>
+<tr><th>Tab</th><th>Field</th><th>Value</th></tr>
+<tr><td>General</td><td>Name</td><td><code>Local</code> (any label you like)</td></tr>
+<tr><td rowspan="4">Connection</td><td>Host name/address</td><td><code>localhost</code></td></tr>
+<tr><td>Port</td><td><code>5432</code></td></tr>
+<tr><td>Username</td><td><code>postgres</code></td></tr>
+<tr><td>Password</td><td>your password, and tick <b>Save password</b></td></tr>
+</table>
+Click <b>Save</b>. These are exactly the parts of your <code>DATABASE_URL</code>.</li>
+</ol>
+
+<h4>b. Create the database</h4>
+<p>Right-click <b>Databases &rarr; Create &rarr; Database...</b>, type <code>todo_app</code> in <b>Database</b>, and click <b>Save</b>. (If you already did step 4 it's there already; create <code>practice_db</code> instead to try it.)</p>
+${plain(`<p>Before clicking Save, open the dialog's <b>SQL</b> tab. pgAdmin shows the command it's about to run: <code>CREATE DATABASE ...</code>. Every click in pgAdmin is just SQL underneath, the same SQL you'd type in psql.</p>`)}
+
+<h4>c. Create the table, way 1: Query Tool (SQL)</h4>
+<ol>
+<li>Right-click your database &rarr; <b>Query Tool</b>. An editor opens.</li>
+<li>Paste the contents of <code>schema.sql</code>.</li>
+<li>Press <b>F5</b> (or the &#9654; Execute button). The Messages panel says the query returned successfully.</li>
+<li>In the Object Explorer, right-click <b>Schemas &rarr; public &rarr; Tables</b> &rarr; <b>Refresh</b>. <code>todos</code> appears.</li>
+</ol>
+
+<h4>d. Create the table, way 2: only clicks</h4>
+<ol>
+<li>Expand your database &rarr; <b>Schemas &rarr; public</b>, then right-click <b>Tables &rarr; Create &rarr; Table...</b></li>
+<li><b>General</b> tab: Name <code>todos</code>.</li>
+<li><b>Columns</b> tab: click <b>+</b> once per column:
+<table>
+<tr><th>Name</th><th>Data type</th><th>Not NULL?</th><th>Primary key?</th><th>Default</th></tr>
+<tr><td><code>id</code></td><td><code>serial</code></td><td>on</td><td>on</td><td></td></tr>
+<tr><td><code>text</code></td><td><code>text</code></td><td>on</td><td>off</td><td></td></tr>
+<tr><td><code>done</code></td><td><code>boolean</code></td><td>on</td><td>off</td><td><code>false</code></td></tr>
+</table></li>
+<li>Peek at the <b>SQL</b> tab: it's almost exactly <code>schema.sql</code>. Click <b>Save</b>.</li>
+</ol>
+
+<h4>e. Look at your data</h4>
+<p>Right-click <b>todos &rarr; View/Edit Data &rarr; All Rows</b>. Your tasks appear as a grid, like a spreadsheet. Add a task in the app, run the view again (F5), and the new row shows up. That's your whole app proven end to end: page &rarr; API &rarr; database.</p>
+
+${box("mongo", "Interview angle: why know both?", `<p><b>pgAdmin</b> is for <i>exploring and debugging</i>: what's in this table, did my app really save that row. <b>SQL files and psql</b> are for <i>repeatable setup</i>: <code>schema.sql</code> lives in Git, so anyone (a teammate, a server, you on a new laptop) can recreate the exact same table with one command. Clicks can't be saved or reviewed.</p>
+<p>A strong answer in an interview: <i>"I define the schema in a SQL file that's committed with the code, and I use pgAdmin or psql to inspect the data while developing."</i> And when they ask you to write a query, you'll have typed every one of these yourself.</p>`)}
 
 ${part("Part 3: Create the Next.js project", "One command makes the skeleton; two more add our libraries.")}
 
