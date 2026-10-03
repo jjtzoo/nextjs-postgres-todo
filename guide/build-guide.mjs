@@ -218,21 +218,23 @@ ${step("Install Node.js")}
 ${ps("node -v\nnpm -v")}
 
 ${step("Install PostgreSQL")}
-<p>PostgreSQL is a program that runs in the background (a Windows <b>service</b>) and waits for connections on <b>port 5432</b>. Pick one way to install it:</p>
-<h4>Option A: one command (what we did)</h4>
-<p>Choose a password first: letters and numbers only, no spaces. Then run:</p>
-${ps(`winget install --id PostgreSQL.PostgreSQL.17 --source winget --override "--mode unattended --unattendedmodeui none --superpassword YOUR_PASSWORD --serverport 5432"`)}
+<p>PostgreSQL is a program that runs in the background (a Windows <b>service</b>) and waits for connections on <b>port 5432</b>. Install it with the normal setup wizard. Start it either way:</p>
+<ul>
+<li><b>From the website:</b> download the Windows installer from <b>postgresql.org/download/windows</b> and run it.</li>
+<li><b>From the terminal:</b> this downloads the same installer and opens the same wizard:</li>
+</ul>
+${ps("winget install PostgreSQL.PostgreSQL.17 --interactive")}
+<p>In the wizard, click Next through everything, except:</p>
 <table>
-<tr><th>Part</th><th>Meaning</th></tr>
-<tr><td><code>winget install --id PostgreSQL.PostgreSQL.17</code></td><td>Use Windows' package manager to install PostgreSQL version 17.</td></tr>
-<tr><td><code>--override "..."</code></td><td>Pass these options straight to the PostgreSQL installer:</td></tr>
-<tr><td><code>--mode unattended --unattendedmodeui none</code></td><td>Install without asking any questions.</td></tr>
-<tr><td><code>--superpassword YOUR_PASSWORD</code></td><td>Password for the main database user, called <code>postgres</code>.</td></tr>
-<tr><td><code>--serverport 5432</code></td><td>The standard PostgreSQL port.</td></tr>
+<tr><th>Screen</th><th>What to do</th></tr>
+<tr><td>Password</td><td>Choose a password for the main database user, called <code>postgres</code>. Letters and numbers are easiest. <b>Write it down</b>; you need it in step 10.</td></tr>
+<tr><td>Port</td><td>Keep <b>5432</b>.</td></tr>
+<tr><td>Last screen</td><td>Untick "Stack Builder"; you don't need it.</td></tr>
 </table>
-${warn(`<p>Windows will show an <b>administrator (UAC) prompt</b>; click Yes. It may hide behind other windows (look for a flashing shield on the taskbar). The download plus install took us about 15 minutes. <b>Write the password down</b>; you need it in step 10.</p>`)}
-<h4>Option B: the normal installer</h4>
-<p>Download the Windows installer from <b>postgresql.org/download/windows</b> and click Next through it. Set a password when asked, keep port <b>5432</b>, and untick "Stack Builder" at the end.</p>
+${warn(`<p>Windows will show an <b>administrator (UAC) prompt</b>; click Yes. It may hide behind other windows (look for a flashing shield on the taskbar). Download plus install can take 10 to 15 minutes.</p>`)}
+${box("tip", "Fully automatic install (optional)", `<p>To install with <b>no</b> windows at all (for scripts, or when someone installs it for you), pass the wizard's answers up front. That's why this command is so long:</p>
+${ps(`winget install --id PostgreSQL.PostgreSQL.17 --source winget --override "--mode unattended --unattendedmodeui none --superpassword YOUR_PASSWORD --serverport 5432"`)}
+<p><code>--override</code> hands the rest straight to the installer: <code>--mode unattended --unattendedmodeui none</code> = no windows, <code>--superpassword</code> = the password answer, <code>--serverport</code> = the port answer. This is how this project's database was installed; the password went straight into <code>.env.local</code>.</p>`)}
 <h4>Check that it's running</h4>
 ${ps("sc.exe query postgresql-x64-17")}
 <p>Look for <code>STATE : 4 RUNNING</code>. It starts automatically every time Windows starts. The installer also adds <b>pgAdmin 4</b>, a point-and-click app for browsing your data (like MongoDB Compass).</p>
