@@ -40,3 +40,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# study guide build output (HTML is regenerated from guide/*.mjs)
+/guide/html/

@@ -1,20 +1,8 @@
-// NOT part of the to-do app. This script only builds the study guide.
+// NOT part of the to-do app. Builds the main study guide (todo-app-guide.pdf).
 // It reads the real project files, so the code in the guide always matches the app.
-//
-//   node guide/build-guide.mjs                      -> writes guide/guide.html
-//   msedge --headless --print-to-pdf=... guide.html -> makes the PDF
-import { readFileSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+// Build every guide with:  node guide/build.mjs
+import { esc, read, code, ps, box, plain, tip, warn, mongo, part, makeStep, page } from "./shared.mjs";
 import { explanations } from "./explanations.mjs";
-
-const root = join(dirname(fileURLToPath(import.meta.url)), "..");
-const read = (p) => readFileSync(join(root, p), "utf8").trimEnd();
-const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-
-// A plain code block, optionally with a label bar on top
-const code = (s, label) =>
-  `<div class="code">${label ? `<div class="label">${esc(label)}</div>` : ""}<pre>${esc(s)}</pre></div>`;
 
 // Code on the left, plain-English explanation on the right, one row per chunk of lines
 const explain = (p, label = p) => {
@@ -37,68 +25,10 @@ const explain = (p, label = p) => {
   return `<div class="ex"><div class="label">${esc(label)}</div><table><tr><th>Code</th><th>What it means</th></tr>${body}</table></div>`;
 };
 
-const box = (kind, title, html) => `<div class="box ${kind}"><div class="bt">${title}</div>${html}</div>`;
-const plain = (html) => box("plain", "In plain English", html);
-const tip = (html) => box("tip", "Tip", html);
-const warn = (html) => box("warn", "Watch out", html);
-const mongo = (html) => box("mongo", "If you know Mongoose / Express", html);
-const ps = (s) => code(s, "PowerShell");
-
-let n = 0;
-const step = (title) => `<h3 class="step"><span class="num">${++n}</span>${title}</h3>`;
-const part = (title, sub) => `<h2 class="part">${title}${sub ? `<span>${sub}</span>` : ""}</h2>`;
-
+const step = makeStep();
 const PSQL = "C:\\Program Files\\PostgreSQL\\17\\bin";
 
-const html = `<!doctype html><html><head><meta charset="utf-8">
-<title>To-Do App Study Guide: Next.js, TypeScript, PostgreSQL, Zustand</title>
-<style>
-@page { size: A4; margin: 15mm 14mm; }
-body { font-family: "Segoe UI", Arial, sans-serif; font-size: 10.5pt; line-height: 1.55; color: #1b1b1b; }
-h1 { font-size: 26pt; margin: 0 0 2px; letter-spacing: -0.5px; }
-.sub { color: #555; font-size: 12pt; margin-bottom: 16px; }
-h2.part { break-before: page; font-size: 18pt; margin: 0 0 10px; padding-bottom: 6px; border-bottom: 3px solid #1f4fd8; }
-h2.part span { display: block; font-size: 10.5pt; font-weight: 400; color: #555; margin-top: 2px; }
-h3 { font-size: 13pt; margin: 20px 0 6px; break-after: avoid; }
-h3.step { border-bottom: 1px solid #e3e3e3; padding-bottom: 4px; }
-h4 { font-size: 11pt; margin: 14px 0 4px; break-after: avoid; }
-.num { display: inline-block; min-width: 24px; height: 24px; line-height: 24px; text-align: center; border-radius: 12px; background: #1f4fd8; color: #fff; font-size: 10pt; margin-right: 8px; padding: 0 4px; }
-p { margin: 6px 0; }
-code { background: #f0f0f0; padding: 1px 4px; border-radius: 3px; font-family: Consolas, monospace; font-size: 9.5pt; }
-.code, .ex { border: 1px solid #d6d6d6; border-radius: 6px; margin: 8px 0 10px; overflow: hidden; }
-.code { break-inside: avoid; }
-.label { background: #eef1f6; font-family: Consolas, monospace; font-size: 8.5pt; padding: 3px 10px; border-bottom: 1px solid #d6d6d6; color: #333; }
-pre { margin: 0; padding: 7px 10px; background: #fafafa; font-family: Consolas, monospace; font-size: 8.8pt; line-height: 1.4; white-space: pre-wrap; word-break: break-word; }
-table { border-collapse: collapse; width: 100%; margin: 6px 0 10px; font-size: 9.5pt; }
-th, td { border: 1px solid #d3d3d3; padding: 4px 7px; text-align: left; vertical-align: top; }
-th { background: #eef1f6; }
-tr { break-inside: avoid; }
-.ex table { margin: 0; }
-.ex th, .ex td { border-left: 0; border-right: 0; }
-.ex td.c { width: 48%; background: #fafafa; padding: 3px 7px; }
-.ex td.c pre { padding: 0; background: none; }
-.ex td.e { font-size: 9.3pt; }
-.box { border-radius: 6px; padding: 7px 11px; margin: 9px 0; break-inside: avoid; border: 1px solid; }
-.box .bt { font-weight: 700; font-size: 9pt; text-transform: uppercase; letter-spacing: .4px; margin-bottom: 2px; }
-.box p:first-of-type { margin-top: 0; }
-.plain { background: #eef6ff; border-color: #bcd6fb; } .plain .bt { color: #1f4fd8; }
-.tip { background: #edf9f0; border-color: #b9e3c4; } .tip .bt { color: #1d7a3a; }
-.warn { background: #fff7e6; border-color: #f1d48a; } .warn .bt { color: #9a6a00; }
-.mongo { background: #f5efff; border-color: #d6c4f7; } .mongo .bt { color: #6b3fc4; }
-.flow { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 10px 0; font-size: 9pt; }
-.flow div.n { border: 1.5px solid #1f4fd8; border-radius: 6px; padding: 5px 7px; background: #f4f8ff; text-align: center; }
-.flow div.n b { display: block; font-size: 9.5pt; }
-.flow div.n small { color: #555; }
-.flow div.n.db { border-color: #2f7d4f; background: #f1faf4; }
-.flow div.n.br { border-color: #8a5cd6; background: #f8f4ff; }
-.flow span.a { color: #888; font-size: 13pt; }
-.side { display: flex; gap: 8px; } .side > div { flex: 1; min-width: 0; }
-ol.journey li { margin-bottom: 2px; }
-li { margin-bottom: 3px; }
-.toc td { border: 0; padding: 2px 4px; } .toc td:first-child { width: 70px; color: #1f4fd8; font-weight: 600; }
-.small { font-size: 9pt; color: #555; }
-</style></head><body>
-
+const body = `
 <h1>Build a To-Do App</h1>
 <div class="sub">Next.js &middot; TypeScript &middot; Node.js &middot; PostgreSQL &middot; Zustand: a beginner's study guide</div>
 
@@ -110,6 +40,7 @@ li { margin-bottom: 3px; }
 <li>how a UI keeps track of data (<b>state, Zustand</b>)</li>
 </ul>
 <p>Every file is shown with a <b>line-by-line explanation</b> table: code on the left, meaning on the right. All commands are for <b>Windows PowerShell</b>.</p>
+${tip(`<p><b>Companion mini guides</b> in the same <code>guide/</code> folder go deeper on each technology, with exercises and interview questions: <code>postgresql-mini-guide.pdf</code>, <code>typescript-mini-guide.pdf</code> and <code>nextjs-mini-guide.pdf</code>.</p>`)}
 
 <table class="toc">
 <tr><td>Part 1</td><td>Understand before you type: the big picture, key words, folders, who creates which file</td></tr>
@@ -208,7 +139,7 @@ ${plain(`<p>Next.js only cares about <code>app/</code> (and <code>public/</code>
 <tr><td><code>AGENTS.md</code>, <code>CLAUDE.md</code>, <code>README.md</code></td><td>create-next-app</td><td>Optional</td><td>Notes for humans and AI coding assistants. Not used by the app.</td></tr>
 <tr><td><code>app/layout.tsx</code>, <code>app/page.tsx</code></td><td>create-next-app</td><td><b>Yes</b></td><td>Generated as a "Hello world", then you replace them.</td></tr>
 <tr><td><code>.env.local</code>, <code>schema.sql</code>, <code>lib/</code>, <code>models/</code>, <code>store/</code>, <code>app/api/</code></td><td><b>You</b></td><td><b>Yes</b></td><td>Your actual app.</td></tr>
-<tr><td><code>guide/</code></td><td>-</td><td>-</td><td><b>Not part of the app.</b> <code>build-guide.mjs</code> and <code>explanations.mjs</code> only generate this PDF. You can delete the folder and the app still works.</td></tr>
+<tr><td><code>guide/</code></td><td>-</td><td>-</td><td><b>Not part of the app.</b> The study guide PDFs, the <code>.mjs</code> scripts that build them (<code>node guide/build.mjs</code>), and <code>practice/</code> files for the mini guides. You can delete the folder and the app still works.</td></tr>
 </table>
 
 ${part("Part 2: Set up PostgreSQL", "Install the database, then create the database and table with psql (typing) or pgAdmin (clicking).")}
@@ -595,7 +526,6 @@ ${part("Part 6: Memorize and practice")}
 </table>
 
 <p class="small" style="margin-top:18px">Generated from the project's real source files by <code>guide/build-guide.mjs</code>. The <code>guide/</code> folder is not part of the app.</p>
-</body></html>`;
+`;
 
-writeFileSync(join(root, "guide", "guide.html"), html);
-console.log("guide.html written");
+export default page("To-Do App Study Guide: Next.js, TypeScript, PostgreSQL, Zustand", body);
